@@ -1,0 +1,49 @@
+name: fx-prevday
+
+on:
+  workflow_dispatch:   # manual only - research experiment (Peter's strategy)
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fx-prevday
+  cancel-in-progress: false
+
+jobs:
+  prevday:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Integrity check (guards against corrupted files)
+        run: python -m compileall -q src tests
+
+      - name: Unit tests
+        run: python tests/test_prevday_fx.py
+
+      - name: Run FX prev-day fib bounce research
+        env:
+          OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
+          OANDA_ENV: practice
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: python -m src.backtest.prevday_fib_fx
+
+      - name: Commit reports
+        if: always()
+        run: |
+          git config user.name "fx-research-bot"
+          git config user.email "fx-research-bot@users.noreply.github.com"
+          git add reports/
+          git diff --cached --quiet || git commit -m "fx prevday research $(date -u +%Y%m%dT%H%M%SZ)"
+          git pull --rebase origin main || true
+          git push
