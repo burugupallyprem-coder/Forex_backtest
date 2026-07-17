@@ -125,3 +125,35 @@ fx_strategy5:             # Regime-conditional daily trend (ER-gated 20/200), pr
     min_quarters_positive_frac: 0.6
   grids:
     er_min: [0.25, 0.35, 0.45]
+
+fx_strategy6:             # S5 rule re-tested on WIDER basket + swap model, pre-registered 2026-07-17
+  instruments: ["USD_JPY", "EUR_USD", "GBP_USD", "AUD_USD", "USD_CHF", "USD_CAD", "NZD_USD"]
+  spread_pips:
+    USD_JPY: 1.6
+    EUR_USD: 1.4
+    GBP_USD: 2.0
+    AUD_USD: 1.5
+    USD_CHF: 1.8
+    USD_CAD: 1.8
+    NZD_USD: 2.0
+  granularity: "D"
+  fast: 20
+  slow: 200
+  er_len: 20
+  atr_len: 20
+  atr_k: 3.0
+  swap_annual_pct: 2.5     # conservative symmetric overnight financing drag (declared stand-in)
+  train_start: "2005-01-01"
+  train_end: "2019-12-31"
+  val_start: "2020-01-01"
+  val_end: null
+  min_train_trades: 100
+  min_train_expectancy_r: 0.02
+  min_stop_cost_mult: 2.0
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grids:
+    er_min: [0.25, 0.35, 0.45]
