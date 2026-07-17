@@ -188,3 +188,33 @@ fx_strategy7:             # News-reaction (volatility+volume spike proxy), conti
   grids:
     spike_k: [2.5, 3.5]
     hold_bars: [4, 8]
+
+fx_strategy8:             # Intraday statistical arbitrage (pairs mean-reversion), pre-registered 2026-07-17
+  leg_pairs:
+    - ["AUD_USD", "NZD_USD"]
+    - ["EUR_USD", "GBP_USD"]
+    - ["EUR_USD", "USD_CHF"]
+  spread_pips:
+    AUD_USD: 1.5
+    NZD_USD: 2.0
+    EUR_USD: 1.4
+    GBP_USD: 2.0
+    USD_CHF: 1.8
+  granularity: "H1"        # intraday; positions typically revert within a day
+  z_exit: 0.0              # exit when spread reverts to its mean
+  stop_z: 4.0              # blow-out stop
+  max_hold: 48             # H1 bars hard cap (~2 days)
+  train_start: "2018-01-01"
+  train_end: "2022-12-31"
+  val_start: "2023-01-01"
+  val_end: null
+  min_train_trades: 100
+  min_train_expectancy_r: 0.02
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grids:
+    z_enter: [2.0, 2.5]
+    lookback: [50, 100]
