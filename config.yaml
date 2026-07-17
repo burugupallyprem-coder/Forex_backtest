@@ -47,3 +47,29 @@ fx_strategy2:             # Peter's strategy #2, 4 trigger families, pre-registe
     min_profit_factor: 1.15
     min_quarters_positive_frac: 0.6
   # family grids + RSI thresholds live in src/backtest/strategy2_sweep.py (declared)
+
+fx_strategy3:             # Overlap opening-range breakout, pre-registered 2026-07-17
+  instruments: ["USD_JPY", "EUR_USD", "GBP_USD"]
+  spread_pips:
+    USD_JPY: 1.6
+    EUR_USD: 1.4
+    GBP_USD: 2.0
+  overlap_start_min: 780   # 13:00 UTC - London/NY overlap begins
+  overlap_end_min: 1020    # 17:00 UTC - flat here (overlap-only trade)
+  sma_days: 50             # daily-trend filter lookback (prev close vs 50d SMA)
+  train_start: "2024-07-01"
+  train_end: "2025-12-31"
+  val_start: "2026-01-01"
+  val_end: null
+  min_train_trades: 100
+  min_train_expectancy_r: 0.02
+  min_stop_cost_mult: 2.0
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grids:
+    or_minutes: [30, 60]
+    target_r: [1.0, 1.5]
+    trend_filter: [false, true]
