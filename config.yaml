@@ -73,3 +73,28 @@ fx_strategy3:             # Overlap opening-range breakout, pre-registered 2026-
     or_minutes: [30, 60]
     target_r: [1.0, 1.5]
     trend_filter: [false, true]
+
+fx_strategy4:             # Daily-timeframe FX trend (MA cross), pre-registered 2026-07-17
+  instruments: ["USD_JPY", "EUR_USD", "GBP_USD"]
+  spread_pips:
+    USD_JPY: 1.6
+    EUR_USD: 1.4
+    GBP_USD: 2.0
+  granularity: "D"         # daily candles
+  atr_len: 20              # ATR lookback for the protective stop
+  atr_k: 3.0               # stop = entry -/+ atr_k x ATR (fixed, not tuned)
+  train_start: "2005-01-01"
+  train_end: "2019-12-31"
+  val_start: "2020-01-01"
+  val_end: null
+  min_train_trades: 100
+  min_train_expectancy_r: 0.02
+  min_stop_cost_mult: 2.0
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grids:
+    fast: [20, 50]
+    slow: [100, 200]
