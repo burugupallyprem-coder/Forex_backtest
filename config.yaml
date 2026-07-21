@@ -218,3 +218,31 @@ fx_strategy8:             # Intraday statistical arbitrage (pairs mean-reversion
   grids:
     z_enter: [2.0, 2.5]
     lookback: [50, 100]
+
+fx_strategy9:             # SMC swing basket (frozen engine, ZERO knobs), pre-registered 2026-07-18
+  instruments: ["XAU_USD", "XAG_USD", "EUR_USD", "GBP_USD", "USD_JPY",
+                "AUD_USD", "USD_CAD", "USD_CHF", "NZD_USD"]
+  spread_price:            # round-trip cost in the instrument's own price units
+    XAU_USD: 0.35
+    XAG_USD: 0.035
+    EUR_USD: 0.00014
+    GBP_USD: 0.0002
+    USD_JPY: 0.016
+    AUD_USD: 0.00015
+    USD_CAD: 0.00018
+    USD_CHF: 0.00018
+    NZD_USD: 0.0002
+  granularity: "M15"       # engine resamples to H1/H4/D internally
+  max_concurrent: 3        # portfolio bankroll rule; later entries skipped
+  train_start: "2019-01-01"
+  train_end: "2023-12-31"
+  val_start: "2024-01-01"
+  val_end: null
+  min_train_trades: 100
+  min_train_expectancy_r: 0.02
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  # NO grids - engine parameters are frozen from the gold prototype (declared).

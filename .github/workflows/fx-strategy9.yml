@@ -1,0 +1,51 @@
+name: fx-strategy9
+
+on:
+  workflow_dispatch:   # manual only - research (SMC swing basket, frozen engine)
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fx-strategy9
+  cancel-in-progress: false
+
+jobs:
+  strategy9:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180        # M15 x 9 instruments over ~7.5 years = heavy fetch
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Integrity check (guards against corrupted files)
+        run: python -m compileall -q src tests
+
+      - name: Unit tests
+        run: |
+          python tests/test_prevday_fx.py
+          python tests/test_strategy9.py
+
+      - name: Run SMC swing basket research
+        env:
+          OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
+          OANDA_ENV: practice
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: python -m src.backtest.strategy9_smc_basket
+
+      - name: Commit reports
+        if: always()
+        run: |
+          git config user.name "fx-research-bot"
+          git config user.email "fx-research-bot@users.noreply.github.com"
+          git add reports/
+          git diff --cached --quiet || git commit -m "fx strategy9 smc basket research $(date -u +%Y%m%dT%H%M%SZ)"
+          git pull --rebase origin main || true
+          git push
