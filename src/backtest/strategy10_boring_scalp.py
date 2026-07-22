@@ -268,7 +268,19 @@ def simulate_instrument(df, instrument, params, cfg):
         # 4) signal on THIS close -> pending for next bar
         in_ny = ny_open <= minute < flat_min
         or_ready = minute >= ny_open + or_min
-        if (pos is None and in_ny and trades_today < max_td and rng > 0
+        # optional volatility floor (gold): only trade on active-open days, i.e. the
+        # opening-range width is at least min_or_width_frac of price. Default None =
+        # off (no behavior change for existing FX/CFD runs). When set, entries wait
+        # for the opening range to be measured and clear the floor.
+        floor = cfg.get("min_or_width_frac")
+        floor_ok = True
+        if floor:
+            if or_ready and date in orlevels and c > 0:
+                orh_f, orl_f = orlevels[date]
+                floor_ok = (orh_f - orl_f) / c >= float(floor)
+            else:
+                floor_ok = False
+        if (pos is None and in_ny and floor_ok and trades_today < max_td and rng > 0
                 and i < n - 1):
             levels = [("PDH", pdlevels[date][0], 1), ("PDL", pdlevels[date][1], -1)]
             if or_ready and date in orlevels:

@@ -1,0 +1,51 @@
+name: fx-strategy10-gold
+
+on:
+  workflow_dispatch:   # manual only - gold-dedicated volatility-floor tune, untouched holdout
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fx-strategy10-gold
+  cancel-in-progress: false
+
+jobs:
+  strategy10gold:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180   # extended history download (M1 back to history_start)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Integrity check (guards against corrupted files)
+        run: python -m compileall -q src tests
+
+      - name: Unit tests
+        run: |
+          python tests/test_strategy10.py
+          python tests/test_strategy10_gold.py
+
+      - name: Run gold volatility-floor tune
+        env:
+          OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
+          OANDA_ENV: practice
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: python -m src.backtest.strategy10_gold
+
+      - name: Commit reports
+        if: always()
+        run: |
+          git config user.name "fx-research-bot"
+          git config user.email "fx-research-bot@users.noreply.github.com"
+          git add reports/
+          git diff --cached --quiet || git commit -m "fx strategy10 gold tune $(date -u +%Y%m%dT%H%M%SZ)"
+          git pull --rebase origin main || true
+          git push

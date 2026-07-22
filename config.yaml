@@ -307,3 +307,39 @@ fx_strategy10_cfd:       # strategy #10 rerun on GOLD + S&P 500 CFDs (OANDA), pr
     trail_lookback: [10, 20]
     trend_filter: [false, true]
     max_trades_day: [1, 2]
+
+fx_strategy10_gold:      # gold-DEDICATED tune: fix scalp knobs to the diagnostic winner,
+                         # sweep ONLY the volatility floor, judge on an UNTOUCHED holdout.
+                         # pre-registered 2026-07-22.
+  instrument: "XAU_USD"
+  spread_price: 0.35
+  granularity: "M1"
+  history_start: "2018-01-01"   # fetch as far back as OANDA M1 serves (dynamic)
+  ny_open_min: 810
+  or_minutes: 5
+  flat_min: 1260
+  ema_fast: 9
+  ema_slow: 21
+  zone_frac: 0.05
+  stop_buf_frac: 0.10
+  min_stop_cost_mult: 2.0
+  # base scalp knobs FROZEN to gold's train-diagnostic winner (no re-search of these):
+  base:
+    trail_lookback: 20
+    trend_filter: false
+    max_trades_day: 1
+  # selection happens on the ALREADY-SPENT window (no NEW judge debt); the honest
+  # judge is the untouched block BEFORE it (strategy #10 never used pre-2024-07 gold).
+  select_start: "2024-07-01"
+  select_end: "2025-12-31"
+  holdout_end: "2024-06-30"     # judge = every session <= this (untouched by strategy #10)
+  min_select_trades: 60
+  walkforward_folds: 6
+  min_positive_frac: 0.6
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grid:
+    min_or_width_frac: [null, 0.0010, 0.0015]   # off, 0.10%, 0.15% of price
