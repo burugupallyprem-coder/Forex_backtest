@@ -64,6 +64,25 @@ def _grp(df, keyfn, label):
     return out
 
 
+def _trade_breakdown(trades):
+    """Build the by-quarter / exit / level / direction lines from a list of Trades.
+    Returns (lines, positive_train_quarters, total_train_quarters)."""
+    if not trades:
+        return ["  (no trades)"], 0, 0
+    tdf = pd.DataFrame([t.__dict__ for t in trades])
+    tdf["date"] = pd.to_datetime(tdf["date"])
+    tdf["quarter"] = pd.PeriodIndex(tdf["date"], freq="Q").astype(str)
+    tdf["dir"] = tdf["signal_reason"].str.contains("long").map({True: "long", False: "short"})
+    lines = []
+    lines += _grp(tdf, "quarter", "quarter")
+    lines += _grp(tdf, lambda r: r["exit_reason"], "exit reason")
+    lines += _grp(tdf, lambda r: _level_family(r["signal_reason"]), "level family")
+    lines += _grp(tdf, "dir", "direction")
+    pos_q = int((tdf.groupby("quarter")["r_multiple"].mean() > 0).sum())
+    tot_q = int(tdf["quarter"].nunique())
+    return lines, pos_q, tot_q
+
+
 def diagnose(df, inst, fx, cfg_sim, half_spread):
     train_end = pd.to_datetime(fx["train_end"]).date()
     val_start = pd.to_datetime(fx["val_start"]).date()
@@ -81,11 +100,6 @@ def diagnose(df, inst, fx, cfg_sim, half_spread):
     eligible.sort(key=lambda s: s[1]["expectancy_r"], reverse=True)
     combo, m, tr = eligible[0]
     combo_str = ", ".join(f"{k}={v}" for k, v in sorted(combo.items()))
-    tdf = pd.DataFrame([t.__dict__ for t in tr])
-    tdf["date"] = pd.to_datetime(tdf["date"])
-    tdf["quarter"] = pd.PeriodIndex(tdf["date"], freq="Q").astype(str)
-    tdf["dir"] = tdf["r_multiple"].where(False)  # placeholder to keep column order
-    tdf["dir"] = tdf["signal_reason"].str.contains("long").map({True: "long", False: "short"})
 
     # gross (zero cost) rerun of the same combo
     cfg0 = {**cfg_sim, "half_spread": {k: 0.0 for k in half_spread}}
@@ -99,14 +113,8 @@ def diagnose(df, inst, fx, cfg_sim, half_spread):
              f"GROSS train: {m0.get('trades', 0)} trades, {m0.get('expectancy_r', 0):+.3f}R, "
              f"PF {m0.get('profit_factor', 0)} (zero-cost; cost toll = "
              f"{m0.get('expectancy_r', 0) - m['expectancy_r']:+.3f}R eaten)", ""]
-    lines += _grp(tdf, "quarter", "quarter")
-    lines += _grp(tdf, lambda r: r["exit_reason"], "exit reason")
-    lines += _grp(tdf, lambda r: _level_family(r["signal_reason"]), "level family")
-    lines += _grp(tdf, "dir", "direction")
-    lines.append("")
-
-    pos_q = (tdf.groupby("quarter")["r_multiple"].mean() > 0).sum()
-    tot_q = tdf["quarter"].nunique()
+    breakdown, pos_q, tot_q = _trade_breakdown(tr)
+    lines += breakdown + [""]
     slack = (f"{inst}: net {m['expectancy_r']:+.3f}R vs gross {m0.get('expectancy_r', 0):+.3f}R, "
              f"{pos_q}/{tot_q} train quarters+ (winner {combo_str})")
     return lines, slack
