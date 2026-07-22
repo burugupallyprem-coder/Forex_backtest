@@ -343,3 +343,32 @@ fx_strategy10_gold:      # gold-DEDICATED tune: fix scalp knobs to the diagnosti
     min_quarters_positive_frac: 0.6
   grid:
     min_or_width_frac: [null, 0.0010, 0.0015]   # off, 0.10%, 0.15% of price
+
+fx_strategy11_gold_orb:  # DISTINCT gold-intraday family: NY opening-range breakout, BIG targets
+                         # (fewer/bigger trades to beat the spread). pre-registered 2026-07-22.
+  instrument: "XAU_USD"
+  spread_price: 0.35
+  granularity: "M1"
+  history_start: "2018-01-01"
+  ny_open_min: 810          # 13:30 UTC NY open
+  entry_cutoff_min: 1020    # 17:00 UTC - no NEW breakouts after this
+  flat_min: 1260            # flat 21:00 UTC
+  ema_fast: 50              # daily trend filter (macro-ish, gold trends on daily)
+  ema_slow: 200
+  min_or_width_frac: 0.0010 # volatility floor: skip dead-tape opens (fixed, declared)
+  min_stop_cost_mult: 2.0
+  select_start: "2024-07-01"
+  select_end: "2025-12-31"
+  holdout_end: "2024-06-30"
+  min_select_trades: 40
+  walkforward_folds: 6
+  min_positive_frac: 0.6
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grid:
+    or_minutes: [15, 30]
+    target_r: [2.0, 3.0]
+    trend_filter: [false, true]
