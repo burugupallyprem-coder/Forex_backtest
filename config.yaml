@@ -246,3 +246,34 @@ fx_strategy9:             # SMC swing basket (frozen engine, ZERO knobs), pre-re
     min_profit_factor: 1.15
     min_quarters_positive_frac: 0.6
   # NO grids - engine parameters are frozen from the gold prototype (declared).
+
+fx_strategy10:            # Peter's 3-step "boring" scalp (EMA dir + PDH/PDL + 5m OR + 1m retest), pre-registered 2026-07-22
+  instruments: ["USD_JPY", "EUR_USD", "GBP_USD"]
+  spread_pips:            # conservative retail spreads, modeled as half per side
+    USD_JPY: 1.6
+    EUR_USD: 1.4
+    GBP_USD: 2.0
+  granularity: "M1"        # 1-minute entries/management (the strategy's execution TF)
+  ny_open_min: 810         # 13:30 UTC - NY open (fixed; DST drift accepted, as elsewhere in repo)
+  or_minutes: 5            # first 5-minute opening-range at NY open
+  flat_min: 1260           # flat by 21:00 UTC
+  ema_fast: 9              # daily EMA fast (direction)
+  ema_slow: 21             # daily EMA slow (direction)
+  zone_frac: 0.05          # PDH/PDL "zone" half-width = zone_frac x prev-day range (wiggle room)
+  stop_buf_frac: 0.10      # initial stop buffer behind broken level = stop_buf_frac x prev-day range
+  train_start: "2024-07-01"
+  train_end: "2025-12-31"
+  val_start: "2026-01-01"
+  val_end: null
+  min_train_trades: 100
+  min_train_expectancy_r: 0.02
+  min_stop_cost_mult: 2.0  # skip setups whose initial stop < 2x round-trip cost
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grids:
+    trail_lookback: [10, 20]   # trailing stop rides behind the low/high of last N 1-min bars
+    trend_filter: [false, true] # true = only trade with daily 9/21 EMA trend; false = also trade ranges
+    max_trades_day: [1, 2]
