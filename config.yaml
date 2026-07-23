@@ -372,3 +372,39 @@ fx_strategy11_gold_orb:  # DISTINCT gold-intraday family: NY opening-range break
     or_minutes: [15, 30]
     target_r: [2.0, 3.0]
     trend_filter: [false, true]
+
+fx_strategy12_orb:       # ORB PORT from the stock champion to an FX MAJORS BASKET (all 3 filters
+                         # reproduced: vol floor + USD-regime + relative strength). pre-registered 2026-07-22.
+  instruments: ["EUR_USD", "GBP_USD", "AUD_USD", "NZD_USD", "USD_JPY", "USD_CHF", "USD_CAD"]
+  spread_pips:
+    EUR_USD: 1.4
+    GBP_USD: 2.0
+    AUD_USD: 1.5
+    NZD_USD: 2.0
+    USD_JPY: 1.6
+    USD_CHF: 1.8
+    USD_CAD: 1.8
+  granularity: "M5"
+  history_start: "2018-01-01"
+  open_bars: 3             # first 3x5min = 15-min opening range (mirrors the stock ORB)
+  rr: 1.5                  # fixed target = entry + 1.5R (stock champion value)
+  min_or_width_frac: 0.0008  # volatility floor: skip dead-tape session opens
+  entry_cutoff_hours: 3    # no new breakouts after open+3h
+  hold_hours: 8            # flat by open+8h; never overnight
+  min_stop_cost_mult: 2.0
+  select_start: "2024-07-01"
+  select_end: "2025-12-31"
+  holdout_end: "2024-06-30"   # untouched by the intraday-ORB family (declared)
+  min_select_trades: 100
+  walkforward_folds: 6
+  min_positive_frac: 0.6
+  slippage_mult: [1.0, 2.0]   # spread sensitivity on the holdout
+  gate:
+    min_trades: 100
+    min_expectancy_r: 0.05
+    min_profit_factor: 1.15
+    min_quarters_positive_frac: 0.6
+  grid:
+    session: ["london", "ny"]    # 07:00 UTC / 13:30 UTC opening range
+    regime_filter: [false, true] # USD-strength index broke in the trade's direction
+    rs_topk: [null, 3]           # trade only the 3 strongest pairs vs USD that session
